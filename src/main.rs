@@ -43,8 +43,8 @@ fn to_color(num: u8) -> (Color, Color) {
 
 fn main() {
     let args = Args::parse();
-    let bias = Rng::gen::<u8>(&mut thread_rng());
-    let step = Rng::gen::<u8>(&mut thread_rng());
+    let bias: u8 = thread_rng().gen();
+    let step: u8 = thread_rng().gen();
     let noise_color = to_color(step.wrapping_add(bias));
 
     print!("{}", "@".on_color(noise_color.1).color(noise_color.0));
