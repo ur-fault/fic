@@ -1,3 +1,4 @@
+use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::Read;
 use std::path::{self, PathBuf};
@@ -42,13 +43,23 @@ fn to_color(num: u8) -> (Color, Color) {
 
 fn main() {
     let args = Args::parse();
-    let mut file = File::open(path::Path::new(&args.file)).expect(&"File not found".red().to_string());
-    for buf in file.bytes() {
+    let bias = Rng::gen::<u8>(&mut thread_rng());
+    let step = Rng::gen::<u8>(&mut thread_rng());
+    let noise_color = to_color(step.wrapping_add(bias));
+
+    print!("{}", "@".on_color(noise_color.1).color(noise_color.0));
+
+    let file =
+        File::open(path::Path::new(&args.file)).expect(&"File not found".red().to_string());
+    for (i, buf) in file.bytes().enumerate() {
         match buf {
             Ok(b) => {
-                let (fg, bg) = to_color(b);
+                let (fg, bg) = to_color(
+                    b.wrapping_mul(step.wrapping_add((i % u8::MAX as usize) as u8))
+                        .wrapping_add(bias),
+                );
                 print!("{}", "#".on_color(bg).color(fg));
-            },
+            }
             Err(e) => println!("{}", e),
         }
     }
